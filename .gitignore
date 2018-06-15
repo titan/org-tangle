@@ -50,3 +50,7 @@ modules.order
 Module.symvers
 Mkfile.old
 dkms.conf
+
+src/org-tangle
+src/*-fsm.c
+src/*-fsm.h

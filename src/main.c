@@ -239,8 +239,21 @@ int main(int argc, char ** argv) {
       depth(ctx.blocks);
       merge(ctx.blocks);
       struct block * block = filter(&ctx.blocks);
+      struct block * used = NULL;
       while (block != NULL) {
-        unlink(block->tangle);
+        struct block * usediter = used;
+        int file_recreated = 0;
+        while (usediter != NULL) {
+          if (strcmp(usediter->tangle, block->tangle) == 0) {
+            file_recreated = 1;
+            break;
+          }
+          usediter = usediter->next;
+        }
+        if (file_recreated == 0) {
+          // delete the old tangled file
+          unlink(block->tangle);
+        }
         char path[strlen(block->tangle) + 1];
         memset(path, 0, strlen(block->tangle) + 1);
         memcpy(path, block->tangle, strlen(block->tangle));
@@ -254,6 +267,13 @@ int main(int argc, char ** argv) {
           fwrite(block->content, 1, strlen(block->content), f);
           fclose(f);
         }
+        struct block * tmp = block->next;
+        block->next = used;
+        used = block;
+        block = tmp;
+      }
+      block = used;
+      while (block != NULL) {
         struct block * tmp = block->next;
         block_free(block);
         block = tmp;

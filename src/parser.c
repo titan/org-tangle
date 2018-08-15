@@ -18,9 +18,11 @@ void parser_update(struct parser_context * ctx, char * input, size_t len) {
     switch (input[i]) {
     case ' ': ctx->state = block_transform_state(ctx->state, BLOCK_SPACE_EVENT, data); break;
     case '\n': ctx->state = block_transform_state(ctx->state, BLOCK_CR_EVENT, data); break;
+    case ',': ctx->state = block_transform_state(ctx->state, BLOCK_COMMA_EVENT, data); break;
+    case '*': ctx->state = block_transform_state(ctx->state, BLOCK_ASTERISK_EVENT, data); break;
     case '#': ctx->state = block_transform_state(ctx->state, BLOCK_SHARP_EVENT, data); break;
-    case '+': ctx->state = block_transform_state(ctx->state, BLOCK__PLUS__EVENT, data); break;
-    case '_': ctx->state = block_transform_state(ctx->state, BLOCK___EVENT, data); break;
+    case '+': ctx->state = block_transform_state(ctx->state, BLOCK_PLUS_EVENT, data); break;
+    case '_': ctx->state = block_transform_state(ctx->state, BLOCK_UNDERLINE_EVENT, data); break;
     case 'b': ctx->state = block_transform_state(ctx->state, BLOCK_B_EVENT, data); break;
     case 'B': ctx->state = block_transform_state(ctx->state, BLOCK_B_EVENT, data); break;
     case 'c': ctx->state = block_transform_state(ctx->state, BLOCK_C_EVENT, data); break;
@@ -92,6 +94,12 @@ void block_do_action(enum BLOCK_ACTION action, void * data) {
     block_append_content(ctx->blocks, c);
     break;
   }
+  case BLOCK_CLEAR_TMP_AND_APPEND_TO_CONTENT_ACTION: {
+    block_clear_tmp(ctx->blocks);
+    char c = *(char *) (((void **)data)[1]);
+    block_append_content(ctx->blocks, c);
+    break;
+  }
   case BLOCK_APPEND_TMP_TO_CONTENT_ACTION: {
     char c = *(char *) (((void **)data)[1]);
     block_append_tmp(ctx->blocks, c);
@@ -110,8 +118,8 @@ void block_do_action(enum BLOCK_ACTION action, void * data) {
       switch (ctx->blocks->config[i]) {
       case ' ': state = block_config_transform_state(state, BLOCK_CONFIG_SPACE_EVENT, d); break;
       case '\n': state = block_config_transform_state(state, BLOCK_CONFIG_CR_EVENT, d); break;
-      case ':': state = block_config_transform_state(state, BLOCK_CONFIG__COLON__EVENT, d); break;
-      case '-': state = block_config_transform_state(state, BLOCK_CONFIG___EVENT, d); break;
+      case ':': state = block_config_transform_state(state, BLOCK_CONFIG_COLON_EVENT, d); break;
+      case '-': state = block_config_transform_state(state, BLOCK_CONFIG_MINUS_EVENT, d); break;
       case 'a': state = block_config_transform_state(state, BLOCK_CONFIG_A_EVENT, d); break;
       case 'b': state = block_config_transform_state(state, BLOCK_CONFIG_B_EVENT, d); break;
       case 'd': state = block_config_transform_state(state, BLOCK_CONFIG_D_EVENT, d); break;
@@ -195,41 +203,41 @@ void block_config_do_action(enum BLOCK_CONFIG_ACTION action, void * data) {
     block_append_tmp(block, c);
     break;
   }
-  case BLOCK_CONFIG__COLON_ERROR_ACTION: {
+  case BLOCK_CONFIG_COLON_ERROR_ACTION: {
     block->error = "No key specified\n";
     break;
   }
-  case BLOCK_CONFIG__COLON_EXPORTS_ACTION: {
+  case BLOCK_CONFIG_COLON_EXPORTS_ACTION: {
     block->key = &(block->exports);
     block_clear_tmp(block);
     break;
   }
-  case BLOCK_CONFIG__COLON_FILE_ACTION: {
+  case BLOCK_CONFIG_COLON_FILE_ACTION: {
     block->key = &(block->file);
     block_clear_tmp(block);
     break;
   }
-  case BLOCK_CONFIG__COLON_MKDIRP_ACTION: {
+  case BLOCK_CONFIG_COLON_MKDIRP_ACTION: {
     block->key = &(block->mkdirp);
     block_clear_tmp(block);
     break;
   }
-  case BLOCK_CONFIG__COLON_NOWEB_ACTION: {
+  case BLOCK_CONFIG_COLON_NOWEB_ACTION: {
     block->key = &(block->noweb);
     block_clear_tmp(block);
     break;
   }
-  case BLOCK_CONFIG__COLON_NOWEB_REF_ACTION: {
+  case BLOCK_CONFIG_COLON_NOWEB_MINUS_REF_ACTION: {
     block->key = &(block->noweb_ref);
     block_clear_tmp(block);
     break;
   }
-  case BLOCK_CONFIG__COLON_OUTPUT_DIR_ACTION: {
+  case BLOCK_CONFIG_COLON_OUTPUT_MINUS_DIR_ACTION: {
     block->key = &(block->output_dir);
     block_clear_tmp(block);
     break;
   }
-  case BLOCK_CONFIG__COLON_TANGLE_ACTION: {
+  case BLOCK_CONFIG_COLON_TANGLE_ACTION: {
     block->key = &(block->tangle);
     block_clear_tmp(block);
     break;

@@ -18,7 +18,10 @@ static struct block * find_block_by_name(struct block * blocks, char * name) {
 }
 
 void load(char * filename, struct parser_context * ctx) {
-  int fd = open(filename, O_RDONLY);
+  int fd = 0; // stdin
+  if (!(strlen(filename) == 1 && filename[0] == '-')) {
+    fd = open(filename, O_RDONLY);
+  }
   if (fd == -1) {
     printf("Cannot open %s\n", filename);
     return;
@@ -257,7 +260,7 @@ int main(int argc, char ** argv) {
         char path[strlen(block->tangle) + 1];
         memset(path, 0, strlen(block->tangle) + 1);
         memcpy(path, block->tangle, strlen(block->tangle));
-        char * sep = rindex(path, '/');
+        char * sep = strrchr(path, '/');
         if (sep != NULL) {
           * sep = 0;
         }

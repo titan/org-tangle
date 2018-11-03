@@ -9,13 +9,13 @@ $(TARGET): $(OBJS)
 %.o:%.c
 	gcc -g -c -Wall -O3 $< -o $@
 
-block-fsm.c: ../script/block-fsm.xlsx
+block-fsm.c: ../script/block-fsm.txt
 	fsm-generator.py $< -d . --prefix block --style table
 
-block-config-fsm.c: ../script/block-config-fsm.xlsx
+block-config-fsm.c: ../script/block-config-fsm.txt
 	fsm-generator.py $< -d . --prefix block_config --style table
 
-ref-fsm.c: ../script/ref-fsm.xlsx
+ref-fsm.c: ../script/ref-fsm.txt
 	fsm-generator.py $< -d . --prefix reference --style table
 
 clean:

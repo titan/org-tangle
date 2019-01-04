@@ -21,7 +21,7 @@ struct block {
   size_t config_capacity;
   char * language;
   size_t language_capacity;
-  char * * key;
+  char * key;
   size_t lines;
   int depth;
   struct reference * references;

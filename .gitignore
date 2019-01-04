@@ -54,3 +54,4 @@ dkms.conf
 src/org-tangle
 src/*-fsm.c
 src/*-fsm.h
+src/*-fsm-actions.h

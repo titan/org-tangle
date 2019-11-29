@@ -95,75 +95,70 @@ static void _merge(struct block * block, struct block * blocks) {
       while (refer != NULL) {
         struct block * found = find_block_by_name(blocks, refer->name);
         if (found != NULL) {
-          if (found->depth == 0) {
-            const size_t refer_size = block_content_length(found) - reference_leading_length(refer) * block_lines(found);
-            int diff = (int)block_content_capacity(block) - (int)refer_size;
-            while (diff <= 0) {
-              block_expand_content(block);
-              diff = (int)block_content_capacity(block) - (int)refer_size;
-            }
-            char * tmp = NULL;
-            if (strlen(block->content) == refer->stop + 1) {
-              // reference is at the last of block content
-            } else {
-              tmp = (char *)malloc(strlen(block->content) - refer->stop); // to save the rest content
-              memset(tmp, 0, strlen(block->content) - refer->stop);
-              if (tmp != NULL) {
-                memcpy(tmp, block->content + refer->stop + 1, strlen(block->content) - refer->stop - 1);
-              }
-            }
-            block_truncate_content(block, refer->start);
-
-            for (int i = 0, referlen = strlen(found->content); i < referlen; i ++) {
-              if (found->content[i] == '\n') {
-                block_append_content(block, '\n');
-                if (i + 1 < referlen) {
-                  for (int j = 0, leadlen = strlen(refer->leading); j < leadlen; j ++) {
-                    block_append_content(block, refer->leading[j]);
-                  }
-                }
-              } else {
-                block_append_content(block, found->content[i]);
-              }
-            }
-            if (tmp != NULL) {
-              for (int i = 0, len = strlen(tmp); i < len; i ++) {
-                block_append_content(block, tmp[i]);
-              }
-              free(tmp);
-            }
-
-            // adjust reference position in merged content
-            int offset = refer_size - (refer->stop - refer->start + 1);
-            if (offset != 0) {
-              struct reference * tmpref = refer->next;
-              while (tmpref != NULL) {
-                if (tmpref->start > refer->start) {
-                  tmpref->start += offset;
-                  tmpref->stop += offset;
-                }
-                tmpref = tmpref->next;
-              }
-            }
-            if (last_refer == refer) {
-              last_refer = refer->next;
-              block->references = last_refer;
-              reference_free(refer);
-              refer = block->references;
-            } else {
-              last_refer->next = refer->next;
-              reference_free(refer);
-              refer = last_refer;
-            }
-            _depth(block, blocks); // recalculate depth of block
-          } else {
-            _merge(found, blocks);
+          if (found->depth != 0) {
+            _merge(found, blocks); // merge found block first
             _depth(found, blocks); // recalculate depth of found block
-            last_refer = refer;
-            if (refer != NULL) {
-              refer = refer->next;
+          }
+          const size_t refer_size = block_content_length(found) + reference_leading_length(refer) * block_lines(found);
+          int diff = (int)block_content_capacity(block) - (int)refer_size;
+          while (diff <= 0) {
+            block_expand_content(block);
+            diff = (int)block_content_capacity(block) - (int)refer_size;
+          }
+          char * tmp = NULL;
+          if (strlen(block->content) == refer->stop + 1) {
+            // reference is at the last of block content
+          } else {
+            tmp = (char *)malloc(strlen(block->content) - refer->stop); // to save the rest content
+            memset(tmp, 0, strlen(block->content) - refer->stop);
+            if (tmp != NULL) {
+              memcpy(tmp, block->content + refer->stop + 1, strlen(block->content) - refer->stop - 1);
             }
           }
+          block_truncate_content(block, refer->start);
+
+          for (int i = 0, referlen = strlen(found->content); i < referlen; i ++) {
+            if (found->content[i] == '\n') {
+              block_append_content(block, '\n');
+              if (i + 1 < referlen) {
+                for (int j = 0, leadlen = strlen(refer->leading); j < leadlen; j ++) {
+                  block_append_content(block, refer->leading[j]);
+                }
+              }
+            } else {
+              block_append_content(block, found->content[i]);
+            }
+          }
+          if (tmp != NULL) {
+            for (int i = 0, len = strlen(tmp); i < len; i ++) {
+              block_append_content(block, tmp[i]);
+            }
+            free(tmp);
+          }
+
+          // adjust reference position in merged content
+          int offset = refer_size - (refer->stop - refer->start + 1);
+          if (offset != 0) {
+            struct reference * tmpref = refer->next;
+            while (tmpref != NULL) {
+              if (tmpref->start > refer->start) {
+                tmpref->start += offset;
+                tmpref->stop += offset;
+              }
+              tmpref = tmpref->next;
+            }
+          }
+          if (last_refer == refer) {
+            last_refer = refer->next;
+            block->references = last_refer;
+            reference_free(refer);
+            refer = block->references;
+          } else {
+            last_refer->next = refer->next;
+            reference_free(refer);
+            refer = last_refer;
+          }
+          _depth(block, blocks); // recalculate depth of block
         } else {
           last_refer = refer;
           if (refer != NULL) {
